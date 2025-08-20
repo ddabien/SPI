@@ -14,19 +14,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show runner info
+        run: |
+          set -euxo pipefail
+          sw_vers
+          xcodebuild -version
+          xcode-select -p
+          which brew || true
+          brew --version || true
+          echo "Repository root:"
+          pwd
+          echo "Tree:"
+          ls -la
+          echo "Check critical files:"
+          test -f project.yml
+          test -f Info.plist
+          test -f Sources/SpaceInvadersSaverView.swift
+          test -f .github/workflows/build.yml
+          # OBLIGATORIO: index.html debe existir
+          test -f Resources/web/index.html
+
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: |
+          set -euxo pipefail
+          brew update
+          brew install xcodegen
+          xcodegen --version
 
       - name: Generate Xcode project
-        run: xcodegen generate
+        run: |
+          set -euxo pipefail
+          xcodegen generate
+          echo "Generated files:"
+          ls -la
+          test -d SpaceInvadersSaver.xcodeproj
+          xcodebuild -list -project SpaceInvadersSaver.xcodeproj
 
       - name: Build .saver (Release)
         run: |
-          xcodebuild -project SpaceInvadersSaver.xcodeproj -scheme SpaceInvadersSaver -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          set -euxo pipefail
+          xcodebuild \
+            -project SpaceInvadersSaver.xcodeproj \
+            -scheme SpaceInvadersSaver \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+          echo "Build products:"
+          ls -la build/Build/Products/Release || true
 
       - name: Pack artifact
         run: |
+          set -euxo pipefail
           cd build/Build/Products/Release
+          test -d SpaceInvadersSaver.saver
           zip -r SpaceInvadersSaver.zip SpaceInvadersSaver.saver
           mv SpaceInvadersSaver.zip $GITHUB_WORKSPACE/
 
@@ -40,6 +83,8 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: macos-14
+    permissions:
+      contents: write
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
