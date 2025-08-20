@@ -1,0 +1,33 @@
+name: SpaceInvadersSaver
+
+targets:
+  SpaceInvadersSaver:
+    type: bundle
+    platform: macOS
+    deploymentTarget: "13.0"
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.drhugodabien.SpaceInvadersSaver
+      CODE_SIGNING_ALLOWED: NO
+      CODE_SIGNING_REQUIRED: NO
+      CODE_SIGN_IDENTITY: ""
+      WRAPPER_EXTENSION: saver
+    sources:
+      - path: Sources
+      - path: Resources
+        type: resources
+    dependencies:
+      - framework: ScreenSaver.framework
+      - framework: WebKit.framework
+    info:
+      path: Info.plist
+      properties:
+        CFBundleIdentifier: com.drhugodabien.SpaceInvadersSaver
+        CFBundleName: SpaceInvadersSaver
+        CFBundlePackageType: BNDL
+        NSPrincipalClass: SpaceInvadersSaverView
+
+schemes:
+  SpaceInvadersSaver:
+    build:
+      targets:
+        SpaceInvadersSaver: all
